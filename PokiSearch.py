@@ -1,57 +1,144 @@
 import requests
-from http import HTTPStatus
+from tkinter import *
+from tkinter import ttk, messagebox
 
-def fetch_data(url):
+# -------------------- CONSTANTS --------------------
+BASE_URL = "https://pokeapi.co/api/v2/"
+FONT_TITLE = ("Times New Roman", 16, "bold")
+FONT_BODY = ("Times New Roman", 12)
+
+# -------------------- API FUNCTIONS --------------------
+def fetch_pokemon(name):
+    url = BASE_URL + "pokemon/" + name.lower()
     r = requests.get(url)
-    return r
+    if r.status_code != 200:
+        return None
+    return r.json()
 
-def checkResponseStatus(status):
-    print(HTTPStatus(status).phrase)
+def fetch_ability(name):
+    url = BASE_URL + "ability/" + name.lower()
+    r = requests.get(url)
+    if r.status_code != 200:
+        return None
+    return r.json()
 
-base = 'https://pokeapi.co/api/v2/'
+# -------------------- WINDOW HELPERS --------------------
+def create_window(title, size="400x500"):
+    win = Toplevel()
+    win.title(title)
+    win.geometry(size)
+    win.columnconfigure(0, weight=1)
+    win.rowconfigure(0, weight=1)
 
-if __name__ == "__main__":
+    frame = ttk.Frame(win, padding=15)
+    frame.grid(sticky="nsew")
+    frame.columnconfigure(0, weight=1)
+    return win, frame
 
-    print("Welcome to the Pokemon Database!")
-    while True:
-        print("\n1. Fetch Pokemon Data")
-        print("2. Fetch Ability Data")
-        print("3. Exit")
-        choice = str(input("Enter your choice (1-3): "))
+def scrollable_text(parent):
+    text = Text(parent, wrap="word", font=FONT_BODY)
+    scrollbar = ttk.Scrollbar(parent, command=text.yview)
+    text.configure(yscrollcommand=scrollbar.set)
 
-        if choice == '1':
-            pokemon_name = input("Enter the name of Pokemon:(i.e pikachu,ditto)")
-            url = base + "pokemon/" + pokemon_name.lower()
+    text.grid(row=1, column=0, sticky="nsew")
+    scrollbar.grid(row=1, column=1, sticky="ns")
 
-        elif choice == '2':
-            pokemon_ability = input("Enter the name/id of Ability:(i.e limber)")
-            url = base + "ability/" + pokemon_ability.lower()
+    parent.rowconfigure(1, weight=1)
+    parent.columnconfigure(0, weight=1)
+    return text
 
-        elif choice == '3':
-            print("Thanks for using pokemon Database!")
+# -------------------- DISPLAY FUNCTIONS --------------------
+def display_pokemon(name):
+    data = fetch_pokemon(name)
+    if not data:
+        messagebox.showerror("Error", "Pokemon not found!")
+        return
+
+    win, frame = create_window("Pokemon Details")
+
+    ttk.Label(frame, text="Pokemon Information", font=FONT_TITLE).grid(row=0, column=0, pady=10)
+
+    text = scrollable_text(frame)
+    text.insert(END, f"Name: {data['forms'][0]['name'].title()}\n")
+    text.insert(END, f"ID: {data['id']}\n\n")
+
+    text.insert(END, "Abilities:\n")
+    for i, a in enumerate(data['abilities'], 1):
+        hidden = "Yes" if a['is_hidden'] else "No"
+        text.insert(END, f"  {i}. {a['ability']['name']} (Hidden: {hidden})\n")
+
+    text.config(state="disabled")
+
+def display_ability(name):
+    data = fetch_ability(name)
+    if not data:
+        messagebox.showerror("Error", "Ability not found!")
+        return
+
+    win, frame = create_window("Ability Details")
+
+    ttk.Label(frame, text="Ability Information", font=FONT_TITLE).grid(row=0, column=0, pady=10)
+
+    text = scrollable_text(frame)
+    text.insert(END, f"Name: {data['name'].title()}\n")
+    text.insert(END, f"ID: {data['id']}\n\n")
+
+    # Effect description (English only)
+    for entry in data['effect_entries']:
+        if entry['language']['name'] == 'en':
+            text.insert(END, f"Description:\n{entry['effect']}\n\n")
             break
-        else:
-            print("Invalid Input(Enter a number from 1-3)")
-            continue
 
-        r = fetch_data(url)
-        if r.status_code != 200:
-            checkResponseStatus(r.status_code)
+    text.insert(END, "Pokemon with this Ability:\n")
+    for i, p in enumerate(data['pokemon'], 1):
+        text.insert(END, f"  {i}. {p['pokemon']['name']}\n")
 
-        data = r.json()
+    text.config(state="disabled")
 
-        if choice == '1':
-            print(f"\nThe Information about {pokemon_name}")
-            print(f"Name:",data['forms'][0]['name'],f"(ID:{data['id']})")
-            print("Abilities:")
-            for i,a in enumerate(data['abilities'],1):
-                print(f"{i}:",a['ability']['name'],f"(isHidden:{a['is_hidden']})")
+# -------------------- SEARCH WINDOWS --------------------
+def pokemon_search():
+    win, frame = create_window("Search Pokemon", "300x200")
 
-        if choice == '2':
-            print(f"\nThe Information about {pokemon_ability}")
-            print(f"Name:{data['name']}(ID:{data['id']})")
-            print("\nDescription:",data['effect_entries'][1]['effect'])
-            print("\nPokemon with this Ability:")
-            for i,a in enumerate(data['pokemon'],1):
-                name = a['pokemon']['name']
-                print(f"{i}:",name)
+    ttk.Label(frame, text="Enter Pokemon Name", font=FONT_TITLE).grid(row=0, column=0, pady=10)
+
+    name_var = StringVar()
+    ttk.Entry(frame, textvariable=name_var, font=FONT_BODY, justify="center").grid(row=1, column=0, pady=10)
+
+    ttk.Button(
+        frame,
+        text="Search",
+        command=lambda: display_pokemon(name_var.get())
+    ).grid(row=2, column=0, pady=10)
+
+def ability_search():
+    win, frame = create_window("Search Ability", "300x200")
+
+    ttk.Label(frame, text="Enter Ability Name", font=FONT_TITLE).grid(row=0, column=0, pady=10)
+
+    ability_var = StringVar()
+    ttk.Entry(frame, textvariable=ability_var, font=FONT_BODY, justify="center").grid(row=1, column=0, pady=10)
+
+    ttk.Button(
+        frame,
+        text="Search",
+        command=lambda: display_ability(ability_var.get())
+    ).grid(row=2, column=0, pady=10)
+
+# -------------------- MAIN WINDOW --------------------
+root = Tk()
+root.title("PokiSearch")
+root.geometry("350x250")
+root.columnconfigure(0, weight=1)
+root.rowconfigure(0, weight=1)
+
+main = ttk.Frame(root, padding=20)
+main.grid(sticky="nsew")
+main.columnconfigure(0, weight=1)
+
+ttk.Label(main, text="Welcome to PokiSearch 😃", font=FONT_TITLE).grid(row=0, column=0, pady=15)
+
+ttk.Button(main, text="Search Pokemon", command=pokemon_search).grid(row=1, column=0, pady=8)
+ttk.Button(main, text="Search Ability", command=ability_search).grid(row=2, column=0, pady=8)
+ttk.Button(main, text="Exit", command=root.quit).grid(row=3, column=0, pady=8)
+
+root.mainloop()

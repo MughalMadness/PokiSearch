@@ -1,31 +1,44 @@
-# 🧭 PokiSearch v1
+# 🧭 PokiSearch v2 (GUI Edition)
 
 [![Python](https://img.shields.io/badge/python-3.7%2B-blue?logo=python)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![API](https://img.shields.io/badge/API-PokéAPI-orange)](https://pokeapi.co/)
+[![GUI](https://img.shields.io/badge/Interface-Tkinter-lightgrey)](https://docs.python.org/3/library/tkinter.html)
 
-PokiSearch is a **Python command-line application** that lets you search for Pokémon and Pokémon abilities using the **PokéAPI**.  
-This is **Version 1** of the project, focusing on fetching Pokémon and ability data through a simple menu interface.
+**PokiSearch v2** is a **Python GUI application** that allows users to explore Pokémon and Pokémon abilities using the **PokéAPI**.  
+This version upgrades the original CLI-based tool into a **fully interactive graphical interface** built with **Tkinter**.
 
 ---
 
 ## ✨ Features
 
-- Fetch **Pokémon details** by name  
-- Fetch **Ability details** by name or ID  
+### 🔍 Pokémon Search
+- Search Pokémon by **name**
 - Displays:
-  - Pokémon ID and name  
-  - Pokémon abilities (including hidden abilities)  
-  - Ability description  
-  - Pokémon that share a specific ability  
-- Simple **interactive CLI menu** for quick searches  
+  - Pokémon name & ID
+  - List of abilities
+  - Hidden ability status
+
+### ⚡ Ability Search
+- Search abilities by **name or ID**
+- Displays:
+  - Ability name & ID
+  - English description
+  - Pokémon that share the ability
+
+### 🖥️ Graphical Interface
+- Clean, responsive **Tkinter GUI**
+- Scrollable result windows
+- Error handling with pop-up dialogs
+- User-friendly navigation
 
 ---
 
 ## 🛠️ Requirements
 
 - Python **3.7+**
-- `requests` library
+- `requests` library  
+- Tkinter (included with most Python installations)
 
 ```bash
 pip install requests
@@ -57,7 +70,7 @@ PokiSearch is actively being developed, with plans to:
 
 📂 Project Status
 
-- ✅ Version 1 completed (CLI-based)
+- ✅ Version 2 completed (GUI-based)
 
 - 🔄 New features and GUI in development
 
